@@ -12,7 +12,7 @@ V2 版本在保持 **Python 原生、零依赖、开箱即用** 的前提下，�
 一句话总结：**不只是能用，而是顺手、耐看、还能给点情绪价值。**
 
 
-![界面[ https://github.com/jhihhe/Folderbatchgenerationtool/blob/main/folder_generator_dracula%E7%95%8C%E9%9D%A2.jpg
+![界面] https://github.com/jhihhe/Folderbatchgenerationtool/blob/main/folder_generator_dracula%E7%95%8C%E9%9D%A2.jpg
 
 ---
 

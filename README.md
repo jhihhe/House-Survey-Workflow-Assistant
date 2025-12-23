@@ -1,6 +1,8 @@
 # 📁 房堪工作流自动化助手 · V2（Dracula 版）  
 **House Survey Workflow Assistant**
 
+[English Version](README_EN.md)
+
 > **“28 一套，拼什么命啊。”**  
 > 但文件夹要是乱了，真的会少赚这 28。
 

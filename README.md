@@ -176,9 +176,26 @@ V2 引入了真正**可感知的性能提升**：
 
 ### 运行方式
 ```bash
-python3 folder_generator_dracula.py
-
+python3 main.py
 ```
+
+---
+
+## 📦 打包指南
+
+如果需要生成独立的 `.app` 或 `.exe` 文件（无需安装 Python 环境即可运行）：
+
+1. **安装 PyInstaller**
+   ```bash
+   pip install pyinstaller
+   ```
+
+2. **执行打包命令**
+   ```bash
+   # macOS
+   pyinstaller --name "房堪助手" --windowed --icon "assets/icons/final_icon.icns" --add-data "src:src" --add-data "assets:assets" --clean --noconfirm main.py
+   ```
+   打包完成后，应用程序将生成在 `dist/` 目录下。
 
 ---
 

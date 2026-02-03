@@ -1,5 +1,5 @@
 import os
-from ..utils.fs_utils import get_date_based_dirs
+from ..utils.fs_utils import get_date_based_dirs, copy_yesterday_excel_to_today
 
 class FolderService:
     @staticmethod
@@ -9,12 +9,13 @@ class FolderService:
             action: 'init' (value=total_steps), 'step' (value=current_step)
         """
         target_dirs = get_date_based_dirs()
-        # Create base dirs
         for d in target_dirs:
             try:
                 os.makedirs(d, exist_ok=True)
             except OSError as e:
                 return None, [f"无法创建目录 {d}: {e}"], target_dirs
+
+        copy_yesterday_excel_to_today()
 
         total_steps = len(folder_names) * len(target_dirs)
         if callback:

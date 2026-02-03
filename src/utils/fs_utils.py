@@ -1,6 +1,6 @@
 import os
 import shutil
-from datetime import datetime
+from datetime import datetime, timedelta
 from .config import Config
 
 def resolve_conflict(dst_dir, filename):
@@ -44,6 +44,48 @@ def get_date_based_dirs(base_root=None, mode='create'):
         vr_dir = os.path.join(base_root, f"{year_str}VR", month_str, day_str)
     
     return [photo_dir, vr_dir]
+
+def copy_yesterday_excel_to_today(base_root=None):
+    if base_root is None:
+        base_root = Config.PATHS['root']
+    try:
+        today = datetime.now()
+        today_dirs = get_date_based_dirs(base_root=base_root, mode='create')
+        today_photo_dir = today_dirs[0]
+        today_day_str = f"{today.month:02d}{today.day:02d}"
+        os.makedirs(today_photo_dir, exist_ok=True)
+
+        source_excel = None
+        for delta in range(1, 366):
+            candidate = today - timedelta(days=delta)
+            y_year_str = candidate.strftime("%Y")
+            y_month_str = f"{candidate.month:02d}月"
+            y_day_str = f"{candidate.month:02d}{candidate.day:02d}"
+            candidate_dir = os.path.join(
+                base_root,
+                f"{y_year_str}相片",
+                y_month_str,
+                f"{y_day_str}贺志",
+            )
+            candidate_excel = os.path.join(
+                candidate_dir,
+                f"{y_day_str}贺志.xlsx",
+            )
+            if os.path.exists(candidate_excel):
+                source_excel = candidate_excel
+                break
+
+        if not source_excel:
+            return False
+
+        today_excel = os.path.join(
+            today_photo_dir,
+            f"{today_day_str}贺志.xlsx",
+        )
+        shutil.copy2(source_excel, today_excel)
+        return True
+    except Exception:
+        return False
 
 def is_same_device(src, dst):
     try:

@@ -4,8 +4,8 @@ APP = ['main.py']
 DATA_FILES = []
 OPTIONS = {
         'argv_emulation': False,
-        'iconfile': 'assets/icons/final_icon.png',
-        'packages': [],
+    'iconfile': 'assets/icons/final_icon.icns',
+    'packages': [],
     'includes': ['src', 'tkinter'],
     'plist': {
         'CFBundleName': "房堪助手",

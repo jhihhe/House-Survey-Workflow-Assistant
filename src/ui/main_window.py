@@ -3,6 +3,7 @@ from tkinter import ttk, filedialog, messagebox
 import threading
 import platform
 import os
+import re
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
@@ -160,8 +161,6 @@ class UniversalFolderCreator:
         content = self.text_input.get("1.0", tk.END)
         lines = content.splitlines()
         
-        import re
-        
         for i, line in enumerate(lines):
             line_num = i + 1
             if not line.strip():
@@ -189,9 +188,47 @@ class UniversalFolderCreator:
             for m in re.finditer(r'([A-Za-z0-9]+-\d+)', line):
                 self.text_input.tag_add("room", f"{line_num}.{m.start(1)}", f"{line_num}.{m.end(1)}")
 
+    def _clean_text_content(self, content):
+        lines = content.split('\n')
+        new_lines = []
+        changed = False
+        
+        for line in lines:
+            if not line:
+                new_lines.append(line)
+                continue
+                
+            original_line = line
+            # Remove XHJ prefix
+            line = re.sub(r'XHJ', '', line)
+            # Remove store suffix (e.g. E店E业务组, A店A业务组)
+            line = re.sub(r'[A-Z]店[A-Z]业务组', '', line)
+            
+            if line != original_line:
+                changed = True
+            new_lines.append(line)
+            
+        return "\n".join(new_lines), changed
+
     def _process_modified(self):
         try:
             self.text_input.edit_modified(False)
+            
+            # Real-time cleaning
+            content = self.text_input.get("1.0", "end-1c")
+            cleaned_content, changed = self._clean_text_content(content)
+            
+            if changed:
+                cursor_pos = self.text_input.index(tk.INSERT)
+                scroll_pos = self.text_input.yview()
+                
+                self.text_input.delete("1.0", tk.END)
+                self.text_input.insert("1.0", cleaned_content)
+                
+                self.text_input.mark_set(tk.INSERT, cursor_pos)
+                self.text_input.yview_moveto(scroll_pos[0])
+                return
+
             self._highlight_syntax()
             
             content = self.text_input.get("1.0", tk.END).strip()

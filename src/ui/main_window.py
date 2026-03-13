@@ -90,8 +90,17 @@ class UniversalFolderCreator:
         # Controls
         control_frame = ttk.Frame(main_frame)
         control_frame.pack(fill=tk.X, pady=10)
+
+        # Photographer Name
+        pg_frame = ttk.Frame(control_frame)
+        pg_frame.pack(side=tk.TOP, fill=tk.X, pady=(0, 5))
+        ttk.Label(pg_frame, text="摄影师姓名：", font=self.fonts['body']).pack(side=tk.LEFT)
+        self.photographer_entry = ttk.Entry(pg_frame, font=self.fonts['body'], width=10)
+        self.photographer_entry.pack(side=tk.LEFT, padx=5)
+        self.photographer_entry.bind('<KeyRelease>', self._update_dir_display)
+
         dir_frame = ttk.Frame(control_frame)
-        dir_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        dir_frame.pack(side=tk.TOP, fill=tk.X, expand=True)
         ttk.Label(dir_frame, text="自动选择的日期目录：", font=self.fonts['body']).pack(side=tk.LEFT)
         self.dir_entry = ttk.Entry(dir_frame, font=self.fonts['body'])
         self.dir_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
@@ -139,10 +148,26 @@ class UniversalFolderCreator:
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
     def _initialize_state(self):
-        dirs = get_date_based_dirs()
-        self.dir_entry.insert(0, dirs[0])
+        settings = Config.load_user_settings()
+        pg_name = settings.get("photographer_name", "")
+        self.photographer_entry.delete(0, tk.END)
+        self.photographer_entry.insert(0, pg_name)
+        
+        self._update_dir_display()
         self._modified_after_id = None
         self.paths = Config.PATHS
+
+    def _update_dir_display(self, event=None):
+        pg_name = self.photographer_entry.get().strip()
+        dirs = get_date_based_dirs(photographer_name=pg_name)
+        self.dir_entry.delete(0, tk.END)
+        self.dir_entry.insert(0, dirs[0])
+        
+        # Save setting
+        settings = Config.load_user_settings()
+        if settings.get("photographer_name") != pg_name:
+            settings["photographer_name"] = pg_name
+            Config.save_user_settings(settings)
 
     def _setup_events(self):
         self.text_input.bind('<<Modified>>', self.on_text_modified)
@@ -295,13 +320,16 @@ class UniversalFolderCreator:
             messagebox.showwarning("打开失败", f"无法打开目录：{path}\n错误：{e}")
 
     def open_photo_dir(self):
-        self.open_dir(get_date_based_dirs()[0])
+        pg_name = self.photographer_entry.get().strip()
+        self.open_dir(get_date_based_dirs(photographer_name=pg_name)[0])
 
     def open_vr_dir(self):
-        self.open_dir(get_date_based_dirs()[1])
+        pg_name = self.photographer_entry.get().strip()
+        self.open_dir(get_date_based_dirs(photographer_name=pg_name)[1])
 
     def copy_dir_paths(self):
-        dirs = get_date_based_dirs()
+        pg_name = self.photographer_entry.get().strip()
+        dirs = get_date_based_dirs(photographer_name=pg_name)
         self.master.clipboard_clear()
         self.master.clipboard_append("\n".join(dirs))
         self.status_bar.config(text="目录路径已复制到剪贴板")
@@ -427,6 +455,7 @@ class UniversalFolderCreator:
     def create_folders(self):
         input_text = self.text_input.get("1.0", tk.END)
         folder_names = [line.strip() for line in input_text.splitlines() if line.strip()]
+        pg_name = self.photographer_entry.get().strip()
         
         if not folder_names:
             messagebox.showerror("错误", "请输入至少一个文件夹名称")
@@ -445,7 +474,7 @@ class UniversalFolderCreator:
                 self.progress_photo.step(1)
                 self.master.update_idletasks()
                 
-        success, errors, target_dirs = FolderService.create_folders(folder_names, callback)
+        success, errors, target_dirs, excel_info = FolderService.create_folders(folder_names, callback, photographer_name=pg_name)
         
         if success is None: # Critical error
              messagebox.showerror("错误", errors[0])
@@ -455,7 +484,11 @@ class UniversalFolderCreator:
         total_vr = success[target_dirs[1]]
         revenue = total_photo * Config.PRICE_PER_SHOOT
         
-        msg = f"创建成功\n相片: {total_photo}\nVR: {total_vr}\n收入: ¥{revenue}"
+        excel_line = f"Excel: 新增 {excel_info.get('added', 0)}，跳过 {excel_info.get('skipped', 0)}"
+        if excel_info.get("error"):
+            excel_line = f"Excel: 失败（{excel_info.get('error')}）"
+
+        msg = f"创建成功\n相片: {total_photo}\nVR: {total_vr}\n收入: ¥{revenue}\n{excel_line}"
         messagebox.showinfo("完成", msg)
         if errors:
             messagebox.showwarning("注意", "\n".join(errors))

@@ -1,5 +1,7 @@
 from pathlib import Path
 import platform
+import json
+import os
 
 class Config:
     PRICE_PER_SHOOT = 28
@@ -23,6 +25,30 @@ class Config:
         'red': '#ff5555',
         'yellow': '#f1fa8c'
     }
+
+    @staticmethod
+    def get_config_path():
+        return os.path.expanduser("~/.fangkan_helper_config.json")
+
+    @staticmethod
+    def load_user_settings():
+        path = Config.get_config_path()
+        if os.path.exists(path):
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                pass
+        return {}
+
+    @staticmethod
+    def save_user_settings(settings):
+        path = Config.get_config_path()
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(settings, f, ensure_ascii=False, indent=2)
+        except:
+            pass
 
     @staticmethod
     def get_fonts():

@@ -1,197 +1,132 @@
-# 📁 House Survey Workflow Assistant · V2 (Dracula Edition)
-**House Survey Workflow Assistant/Create folders in batches**
+# 📁 House Survey Workflow Assistant (Dracula Edition)  
+**Create folders in batches / Excel smart updates / Dual-lane import**
 
-> **"It's only 28 per set, why work so hard?"**
-> But if the folders are messy, you might not even earn that 28.
+[中文版本](README.md)
 
-This is a **desktop automation tool tailored for real estate photography / survey workflows**.
-It doesn't just solve "how to create folders," but rather—
-**Creating folders repeatedly every day, creating them correctly, quickly, and with a good mood.**
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
+[![GUI](https://img.shields.io/badge/GUI-Tkinter%20%2F%20ttk-6f42c1)](https://docs.python.org/3/library/tkinter.html)
+[![Theme](https://img.shields.io/badge/Theme-Dracula-bd93f9)](https://draculatheme.com/)
+[![Excel](https://img.shields.io/badge/Excel-openpyxl-2ea44f)](https://openpyxl.readthedocs.io/)
+[![Concurrency](https://img.shields.io/badge/Import-Dual%20lane%20concurrent-ff79c6)](#)
+[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)](#)
+[![Last Commit](https://img.shields.io/github/last-commit/jhihhe/Folderbatchgenerationtool)](https://github.com/jhihhe/Folderbatchgenerationtool)
+[![Issues](https://img.shields.io/github/issues/jhihhe/Folderbatchgenerationtool)](https://github.com/jhihhe/Folderbatchgenerationtool/issues)
+[![Stars](https://img.shields.io/github/stars/jhihhe/Folderbatchgenerationtool?style=social)](https://github.com/jhihhe/Folderbatchgenerationtool/stargazers)
 
-The V2 version maintains **Python native, zero dependency, out-of-the-box** features, while completely refactoring **UI experience, interaction details, and concurrency performance**.
-In a nutshell: **Not just usable, but handy, good-looking, and emotionally satisfying.**
+> “It’s only ¥28 per set.”  
+> But if your folders are messy, you might not even earn that ¥28.
+
+A desktop tool for real estate photography / house survey workflows: **batch folder generation**, **Excel auto-inheritance and writing**, **dual-lane concurrent import**, and **real-time income stats**.
 
 ![Interface Preview](README.jpg)
 
 ---
 
-## ✨ Introduction
-
-The daily reality of house survey photography is usually like this:
-
-- How many sets today?
-- Should the Photo and VR directories be aligned?
-- Is the date correct?
-- Are there any "/" in the filenames?
-- Did the interface freeze while importing cards?
-- After shooting a bunch, only one sentence remains in my mind: "What am I doing?"
-
-This tool is designed to solve these "seemingly simple but energy-consuming small things".
-
-It is a **cross-platform desktop GUI application** focused on three things:
-
-1. **Creating folders correctly at once**
-2. **Importing materials completely at once**
-3. **Calculating income clearly**
-
-And the V2 version makes these three things **faster, more stable, and better looking**.
+## Highlights (V2.1)
+- **Faster Excel styling**: only processes the most recent non-today date block (no full-sheet repaint)
+- **Green marking with K/L/M/N skipped**: preserves original formatting for those columns
+- **Custom photographer name**: affects folder name, Excel filename, and the “Photographer” column
+- **Persistent setting**: default empty on first launch, auto-restored on the next launch
 
 ---
 
-## 🚀 Core Features Overview
+## What you get
 
-### 📂 1. Batch Folder Generation (Essential for Survey)
+### 1) Batch Folder Generation (Photo + VR)
+- One input list, two directory trees (Photo & VR)
+- Automatic date-based directory structure
+- Invalid character replacement for macOS/Windows paths
+- Input cleanup for common store/team prefixes and suffixes
 
-- **One Input, Dual Sync**
-  - Create corresponding property folders in both "Photo" and "VR" directories simultaneously
-- **Automatic Date Recognition**
-  - Year / Month / Day automatically matched, no manual typing needed
-- **Standardized Directory Structure**
-  - Photo Directory:
-    `.../{YYYY}Photo/{MM}Month/{MMDD}HeZhi`
-  - VR Directory:
-    `.../{YYYY}VR/{MM}Month/{MMDD}`
-- **Illegal Character Auto-Cleaning**
-  - `/ \ : * ? " < > |` automatically replaced, works on macOS / Windows
-- **One-Click High-Frequency Operations**
-  - Open directory / Copy path / Fill example, no thinking required
+**Default structure (example)**
+```text
+{root}/2026相片/03月/0313{Photographer}/0313{Photographer}.xlsx
+{root}/2026VR/03月/0313/
+```
 
----
+### 2) Excel Smart Engine (inherit + append + styling)
+- If today’s Excel is missing, it looks back (default: 365 days) and copies the latest available template
+- Appends all input lines (no dedup checks to avoid accidental misses)
+- Detects and writes leading indices like `1.` / `1、`
+- Auto-increments monthly count based on the previous row
 
-### 💰 2. Real-time Income Calculation (Spiritual Support System)
+**Styling rules**
+- Today rows: HS column highlighted in yellow
+- Last working day rows: whole row in green fill/green font (K/L/M/N skipped)
 
-- Automatically calculate estimated income for today at **¥28 / set**
-- Updates instantly upon input and creation
-- Popup prompt upon completion:
-  > "Not a loss today, at least it's purple."
+### 3) Dual-lane Concurrent Import (UI stays responsive)
+- Photo and VR transfers run in parallel
+- Live progress + file count + speed (e.g. `86.4 MB/s`)
+- Safety behavior
+  - Missing card / missing path: readable status instead of scary tracebacks
+  - Empty source folder: safe no-op
+  - Destination write test: catches permission/read-only issues early
 
----
+### 4) “Purple Mood Bar” (the more you type, the purpler it gets)
+The status bar color shifts based on the number of sets entered:
+- 0–5 sets: fast ramp from gray → purple
+- 5–10 sets: stable purple
+- 10–30 sets: purple → pink gradient
 
-### ⚡️ 3. High-Speed Smart Import (V2 Major Upgrade)
+It doesn’t change the output, but it changes your mood.
 
-V2 introduces truly **perceptible performance improvements**:
-
-#### 🚄 Multi-threaded Concurrent Import
-- Background multi-threaded file IO processing
-- **Interface does not freeze during card import**
-- Photo / VR **dual parallel transmission**
-
-#### 📊 Geek-level Progress Visualization
-- Real-time transmission speed display (e.g., `86.4 MB/s`)
-- Dual progress bars independently displayed:
-  - Percentage
-  - File count (`23 / 51`)
-- You can clearly know:
-  - It's working
-  - It's fast
-  - It's not slacking off
-
-#### 🛡 Safety Mechanism
-- Memory card not inserted → Auto skip
-- Source directory empty → No error, no scare
-- All paths undergo existence verification
+### 5) UI/UX Details (Dracula + editor-like input)
+- Dracula dark theme for long sessions
+- Editor-like input: line numbers, current-line highlight, synced scrolling
+- Smooth hover transitions via color interpolation
 
 ---
 
-## 🎨 V2 UI / UX Deep Upgrade (Highlight)
+## Quick Start
 
-> **The UI upgrade of Project V2 is entirely based on the Python standard library.**
-> No third-party UI frameworks were introduced.
-
-### 🧛 Dracula Dark Theme
-- Full interface adopts **Dracula official color scheme**
-- Eye-friendly, restrained, not cheap
-- Not just "dimmed," but a systematic color specification
-
----
-
-### 🧠 VS Code-like Editor Experience
-- Custom input component implementation:
-  - **Line number display**
-  - **Current line highlight**
-  - **Text and line number synchronous scrolling**
-- Used to fill in property names, but with the ritual of writing code
-
----
-
-### 🌊 Native Fluid Animation
-- Color interpolation algorithm for button Hover
-- Smooth gradient, no jumping, no flickering
-- **Completely independent of third-party animation libraries**
-
----
-
-### 💜 "Purple Air Comes from the East" Mood Status Bar
-- The status bar color changes according to the number of survey sets entered
-- From calm dark gray → rich light purple
-- The more sets, the "purpler" it gets
-- A very unnecessary, but very useful design
-
----
-
-### 🖥 Cross-Platform Adaptation
-- Auto-detect Windows / macOS / Linux
-- macOS Retina high-resolution screen adaptation
-- Windows DPI scaling support
-- Font auto-switching:
-  - Windows: Microsoft YaHei
-  - macOS: Helvetica
-
----
-
-## 🛠 Tech Stack
-
-- **Language**: Python 3.x
-- **GUI**: Tkinter / ttk (Standard Library)
-- **Concurrency**: threading + UI safe callbacks
-- **File System**: os / shutil
-- **Dependency**: **Zero Dependency**
-
-> No `pip install` needed
-> No virtual environment needed
-> No need to explain "why it won't open"
-
----
-
-## 🚀 Quick Start
-
-### Environment Requirements
-- Python 3.x
+### Requirements
+- Python 3.10+ (3.12 / 3.13 recommended)
 - macOS / Windows / Linux
-- macOS recommended (default path fits survey habits better)
 
-### How to Run
+### Install dependency (for Excel features)
+```bash
+pip install openpyxl
+```
+
+### Run
 ```bash
 python3 main.py
 ```
 
 ---
 
-
-## 📌 Who is this for?
-
-If you fit any of the following, this tool will likely save you from cursing your computer every day:
-
-- **Real Estate Photographers / Survey Practitioners**
-  Creating directories, copying materials, checking dates every day until you doubt life.
-
-- **VR / Panorama Shooters**
-  Photo and VR dual lines parallel, most afraid of messy directories, leading to overtime in post-production.
-
-- **High-Frequency Shooting, Multi-Set Burst Mode**
-  Shooting a dozen sets a day, manually creating folders isn't impossible, it's just not worth it.
-
-- **People who hate "usable but hard to use" tools**
-  Not pursuing fancy things, but at least it should be handy, stable, and humane.
-
-- **Tool enthusiasts with basic UI aesthetic requirements**
-  Dark theme, detail animation, status feedback, don't want to compromise on any.
+## Input example
+One property per line; leading indices are optional:
+```text
+1. Store A ZhangSan WangjingSOHO Building 1 1101 East 2BR
+2、Store B LiSi SomeCommunity Building 3 902 South-North 3BR
+```
 
 ---
 
-**28 per set, indeed not expensive.**
-But if the tool is a bit handier,
-A little less annoying every day,
-Then earning that 28 won't feel so suffocating.
+## Settings
+- Photographer name is stored at: `~/.fangkan_helper_config.json`
+- Default paths can be changed in `src/utils/config.py`
 
-*Created with ❤️ by JhihHe*
+---
+
+## Packaging (macOS .app / Windows .exe)
+```bash
+pip install pyinstaller
+python3 -m PyInstaller --noconfirm --clean "房堪助手.spec"
+```
+
+---
+
+## More screenshots
+![UI Screenshot](界面.png)
+
+---
+
+## FAQ
+### Excel save failed (file in use)
+Close the Excel file first, then retry.
+
+### What if Photographer name is empty?
+- Photo folder becomes `.../{MMDD}` (no suffix)
+- Excel file becomes `MMDD.xlsx`

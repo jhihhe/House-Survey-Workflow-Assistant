@@ -1,132 +1,102 @@
-# 📁 House Survey Workflow Assistant (Dracula Edition)  
-**Create folders in batches / Excel smart updates / Dual-lane import**
+# House Survey Workflow Assistant
 
-[中文版本](README.md)
+English | [中文](README.md)
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
-[![GUI](https://img.shields.io/badge/GUI-Tkinter%20%2F%20ttk-6f42c1)](https://docs.python.org/3/library/tkinter.html)
-[![Theme](https://img.shields.io/badge/Theme-Dracula-bd93f9)](https://draculatheme.com/)
-[![Excel](https://img.shields.io/badge/Excel-openpyxl-2ea44f)](https://openpyxl.readthedocs.io/)
-[![Concurrency](https://img.shields.io/badge/Import-Dual%20lane%20concurrent-ff79c6)](#)
-[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)](#)
-[![Last Commit](https://img.shields.io/github/last-commit/jhihhe/Folderbatchgenerationtool)](https://github.com/jhihhe/Folderbatchgenerationtool)
-[![Issues](https://img.shields.io/github/issues/jhihhe/Folderbatchgenerationtool)](https://github.com/jhihhe/Folderbatchgenerationtool/issues)
-[![Stars](https://img.shields.io/github/stars/jhihhe/Folderbatchgenerationtool?style=social)](https://github.com/jhihhe/Folderbatchgenerationtool/stargazers)
+![GitHub last commit](https://img.shields.io/github/last-commit/jhihhe/Folderbatchgenerationtool?style=for-the-badge&color=7c3aed)
+![GitHub repo size](https://img.shields.io/github/repo-size/jhihhe/Folderbatchgenerationtool?style=for-the-badge&color=2563eb)
+![GitHub stars](https://img.shields.io/github/stars/jhihhe/Folderbatchgenerationtool?style=for-the-badge&color=f59e0b)
+![GitHub issues](https://img.shields.io/github/issues/jhihhe/Folderbatchgenerationtool?style=for-the-badge&color=ef4444)
+![Electron](https://img.shields.io/badge/Electron-41.x-0ea5e9?style=for-the-badge&logo=electron)
+![React](https://img.shields.io/badge/React-19.x-06b6d4?style=for-the-badge&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-2563eb?style=for-the-badge&logo=typescript)
+![Python](https://img.shields.io/badge/Python-3.10+-22c55e?style=for-the-badge&logo=python)
+![License](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge)
 
-> “It’s only ¥28 per set.”  
-> But if your folders are messy, you might not even earn that ¥28.
+![Refactored UI](重构版界面.png)
 
-A desktop tool for real estate photography / house survey workflows: **batch folder generation**, **Excel auto-inheritance and writing**, **dual-lane concurrent import**, and **real-time income stats**.
+## Overview
 
-![Interface Preview](README.jpg)
+This project streamlines real-estate media operations into one reliable workflow:
 
----
+- parse listing lines
+- generate Photo + VR folder trees
+- run dual-lane media import
+- append daily Excel records with style continuity
 
-## Highlights (V2.1)
-- **Faster Excel styling**: only processes the most recent non-today date block (no full-sheet repaint)
-- **Green marking with K/L/M/N skipped**: preserves original formatting for those columns
-- **Custom photographer name**: affects folder name, Excel filename, and the “Photographer” column
-- **Persistent setting**: default empty on first launch, auto-restored on the next launch
+The repository keeps both tracks:
 
----
+- Electron edition (mainline): modern UI, richer interactions, packaging-ready.
+- Python edition (legacy-compatible): keeps old operational scripts available.
 
-## What you get
+## Core Features
 
-### 1) Batch Folder Generation (Photo + VR)
-- One input list, two directory trees (Photo & VR)
-- Automatic date-based directory structure
-- Invalid character replacement for macOS/Windows paths
-- Input cleanup for common store/team prefixes and suffixes
+- Batch folder generation from plain text input.
+- Concurrent photo/VR import with live progress and speed.
+- Excel template inheritance + row append + style consistency.
+- Device identification strategy: volume label first, EXIF as fallback.
+- Cinematic interface effects and Star-Wars-style HUD editor.
 
-**Default structure (example)**
+## Repository Layout
+
 ```text
-{root}/2026相片/03月/0313{Photographer}/0313{Photographer}.xlsx
-{root}/2026VR/03月/0313/
+.
+├── electron-app/            # Electron + React + TypeScript app
+├── src/                     # Python implementation
+├── assets/icons/            # Icon assets
+├── README.md                # Chinese documentation
+└── README_EN.md             # English documentation
 ```
 
-### 2) Excel Smart Engine (inherit + append + styling)
-- If today’s Excel is missing, it looks back (default: 365 days) and copies the latest available template
-- Appends all input lines (no dedup checks to avoid accidental misses)
-- Detects and writes leading indices like `1.` / `1、`
-- Auto-increments monthly count based on the previous row
-
-**Styling rules**
-- Today rows: HS column highlighted in yellow
-- Last working day rows: whole row in green fill/green font (K/L/M/N skipped)
-
-### 3) Dual-lane Concurrent Import (UI stays responsive)
-- Photo and VR transfers run in parallel
-- Live progress + file count + speed (e.g. `86.4 MB/s`)
-- Safety behavior
-  - Missing card / missing path: readable status instead of scary tracebacks
-  - Empty source folder: safe no-op
-  - Destination write test: catches permission/read-only issues early
-
-### 4) “Purple Mood Bar” (the more you type, the purpler it gets)
-The status bar color shifts based on the number of sets entered:
-- 0–5 sets: fast ramp from gray → purple
-- 5–10 sets: stable purple
-- 10–30 sets: purple → pink gradient
-
-It doesn’t change the output, but it changes your mood.
-
-### 5) UI/UX Details (Dracula + editor-like input)
-- Dracula dark theme for long sessions
-- Editor-like input: line numbers, current-line highlight, synced scrolling
-- Smooth hover transitions via color interpolation
-
----
-
-## Quick Start
+## Quick Start (Electron mainline)
 
 ### Requirements
-- Python 3.10+ (3.12 / 3.13 recommended)
-- macOS / Windows / Linux
 
-### Install dependency (for Excel features)
+- Node.js 20+
+- npm 10+
+- macOS / Windows
+
+### Development
+
 ```bash
-pip install openpyxl
+cd electron-app
+npm install
+npm run dev
 ```
 
-### Run
+### Packaging
+
 ```bash
-python3 main.py
+cd electron-app
+npm run build -- --mac
+npm run build -- --win
 ```
 
----
+Build outputs are generated in `electron-app/dist/`, archived artifacts in `electron-app/release-artifacts/`.
 
-## Input example
-One property per line; leading indices are optional:
-```text
-1. Store A ZhangSan WangjingSOHO Building 1 1101 East 2BR
-2、Store B LiSi SomeCommunity Building 3 902 South-North 3BR
-```
+## Quick Start (Python legacy)
 
----
-
-## Settings
-- Photographer name is stored at: `~/.fangkan_helper_config.json`
-- Default paths can be changed in `src/utils/config.py`
-
----
-
-## Packaging (macOS .app / Windows .exe)
 ```bash
-pip install pyinstaller
-python3 -m PyInstaller --noconfirm --clean "房堪助手.spec"
+pip install -r requirements.txt
+python main.py
 ```
 
+## Troubleshooting
+
+- Black screen after packaging: ensure `dist` is included in bundle and renderer assets use relative paths.
+- Icon not applied: verify `electron-app/build/icons/app.icns` and `app.ico` exist.
+- Excel write failure: close the opened workbook and retry.
+
+## Screenshots
+
+![Main UI](README.jpg)
+![Refactored UI](重构版界面.png)
+
+## Tech Stack
+
+- Electron, React, TypeScript, Vite
+- Three.js, Framer Motion, Tailwind CSS
+- ExcelJS, openpyxl
+
 ---
 
-## More screenshots
-![UI Screenshot](界面.png)
-
----
-
-## FAQ
-### Excel save failed (file in use)
-Close the Excel file first, then retry.
-
-### What if Photographer name is empty?
-- Photo folder becomes `.../{MMDD}` (no suffix)
-- Excel file becomes `MMDD.xlsx`
+If this project helps your workflow, a Star is always appreciated.

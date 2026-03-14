@@ -1,68 +1,95 @@
-# 📁 房堪工作流自动化助手（Dracula 版 - PyQt6 重构）
+# 房勘工作流助手 · House Survey Workflow Assistant
 
-**House Survey Workflow Assistant**
+[English](README_EN.md) | 中文
 
-专为房产摄影工作流打造的桌面工具，采用 PyQt6 重构，界面更现代化，功能更稳定。
+![GitHub last commit](https://img.shields.io/github/last-commit/jhihhe/Folderbatchgenerationtool?style=for-the-badge&color=7c3aed)
+![GitHub repo size](https://img.shields.io/github/repo-size/jhihhe/Folderbatchgenerationtool?style=for-the-badge&color=2563eb)
+![GitHub stars](https://img.shields.io/github/stars/jhihhe/Folderbatchgenerationtool?style=for-the-badge&color=f59e0b)
+![GitHub issues](https://img.shields.io/github/issues/jhihhe/Folderbatchgenerationtool?style=for-the-badge&color=ef4444)
+![Electron](https://img.shields.io/badge/Electron-41.x-0ea5e9?style=for-the-badge&logo=electron)
+![React](https://img.shields.io/badge/React-19.x-06b6d4?style=for-the-badge&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-2563eb?style=for-the-badge&logo=typescript)
+![Python](https://img.shields.io/badge/Python-3.10+-22c55e?style=for-the-badge&logo=python)
+![License](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge)
 
-## ✨ 主要功能
+![重构版界面](重构版界面.png)
 
-### 1. 批量创建文件夹
-- **双路生成**：输入房源名称，同时生成“相片”和“VR”两套目录。
-- **自动归档**：按 `年/月/日` 结构自动创建，无需手动管理层级。
-- **Excel 自动记录**：自动将生成的文件夹记录到每日 Excel 表格中，支持从历史数据继承表头和样式。
+## 项目简介
 
-### 2. 智能导卡（一键导入）
-- **并发导入**：同时从相片卡（Sigma/Sony）和 VR 卡（Insta360/Osmo）导入素材。
-- **进度追踪**：实时显示进度条、文件数量和传输速度。
-- **自动归档**：自动将素材导入到对应的“原片”目录。
+这是一个面向房产摄影/VR 团队的生产力工具，核心目标是把“录入房源、建目录、导素材、写 Excel”串成一条稳定流水线。  
+当前仓库同时保留：
 
-### 3. 现代化界面
-- **Dracula 主题**：深色模式，护眼且专业。
-- **设置面板**：直接在界面上配置“工作根目录”、“相片源目录”、“VR 源目录”，无需修改代码。
-- **跨平台**：完美支持 macOS 和 Windows，路径自动适配。
+- Electron 重构版（主线）：炫酷 UI、并发导卡、Excel 自动追加与样式继承。
+- Python 版本（兼容）：历史脚本与旧工作流可继续使用。
 
-## 🚀 使用指南
+## 关键能力
 
-### 运行环境
-- Python 3.10+
+- 批量目录生成：一段文本同时生成“相片 + VR”目录树。
+- 导卡并发同步：相片与 VR 双通道并发复制，实时显示速度与进度。
+- Excel 智能写入：复制前日模板、追加当天数据、保持行高与样式一致。
+- 设备识别策略：优先盘符名称，其次 EXIF 机型。
+- 高级交互界面：3D 背景、电影级动效、星战 HUD 风输入框。
 
-### 安装依赖
-```bash
-pip install -r requirements.txt
+## 目录结构
+
+```text
+.
+├── electron-app/            # Electron + React + TS 主线应用
+├── src/                     # Python 版本核心代码
+├── assets/icons/            # 图标资源
+├── README.md                # 中文说明
+└── README_EN.md             # English docs
 ```
 
-### 启动应用
+## 快速开始（Electron 主线）
+
+### 环境要求
+
+- Node.js 20+
+- npm 10+
+- macOS / Windows
+
+### 开发模式
+
 ```bash
+cd electron-app
+npm install
+npm run dev
+```
+
+### 打包
+
+```bash
+cd electron-app
+npm run build -- --mac
+npm run build -- --win
+```
+
+构建产物位于 `electron-app/dist/`，归档产物位于 `electron-app/release-artifacts/`。
+
+## 快速开始（Python 兼容版）
+
+```bash
+pip install -r requirements.txt
 python main.py
 ```
 
-## 📦 打包指南 (生成 .app 或 .exe)
+## 常见问题
 
-本皆目包含 `build.spec` 配置文件，支持一键打包。
+- 打包后黑屏：确认 `dist` 资源已被打包且前端资源路径为相对路径。
+- 图标未生效：确认 `electron-app/build/icons/app.icns` 与 `app.ico` 存在。
+- Excel 写入异常：先关闭正在占用的 Excel 文件后重试。
 
-### macOS
-生成 `.app` 应用程序：
-```bash
-pyinstaller build.spec
-```
-完成后在 `dist/` 目录下找到 `HouseSurveyAssistant.app`。
+## 预览图
 
-### Windows
-生成 `.exe` 可执行文件：
-```bash
-pyinstaller build.spec
-```
-完成后在 `dist/` 目录下找到 `HouseSurveyAssistant` 文件夹（包含 exe）。
+![界面预览](README.jpg)
+![重构版预览](重构版界面.png)
 
-## ⚙️ 配置
-所有设置（摄影师姓名、路径）会自动保存到用户目录下的配置文件 `~/.fangkan_helper_config.json` 中。
+## 致谢
 
-## 📝 更新日志
-- **v3.0 (PyQt6)**: 
-    - 核心 UI 重写，移除 Tkinter。
-    - 新增可视化设置面板，路径不再硬编码。
-    - 优化多线程导入逻辑，界面不卡顿。
-    - 统一 macOS 和 Windows 的打包配置。
+- Electron / React / Vite / Framer Motion / Three.js
+- ExcelJS / openpyxl
 
 ---
-Copyright © 2024 JhihHe, All Rights Reserved.
+
+如果这个项目帮你节省了时间，欢迎点一个 Star。

@@ -3,10 +3,10 @@ from setuptools import setup
 APP = ['main.py']
 DATA_FILES = []
 OPTIONS = {
-        'argv_emulation': False,
+    'argv_emulation': False,
     'iconfile': 'assets/icons/final_icon.icns',
     'packages': [],
-    'includes': ['src', 'tkinter'],
+    'includes': [],
     'plist': {
         'CFBundleName': "房堪助手",
         'CFBundleDisplayName': "房堪工作流助手",

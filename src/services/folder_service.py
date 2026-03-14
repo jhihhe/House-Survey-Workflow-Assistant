@@ -1,5 +1,5 @@
 import os
-from ..utils.fs_utils import get_date_based_dirs, copy_yesterday_excel_to_today, update_today_excel_from_folder_names
+from src.utils.fs_utils import get_date_based_dirs, copy_yesterday_excel_to_today, update_today_excel_from_folder_names
 
 class FolderService:
     @staticmethod

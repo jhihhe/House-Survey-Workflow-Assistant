@@ -1,17 +1,12 @@
-from pathlib import Path
-import platform
-import json
 import os
+import json
+import platform
+from pathlib import Path
 
 class Config:
     PRICE_PER_SHOOT = 28
     
-    PATHS = {
-        "root": Path("/Users/mac/Pictures/工作"),
-        "photo_src": Path("/Volumes/Untitled/DCIM/100SIGMA"),
-        "vr_src": Path("/Volumes/Osmo360/DCIM/CAM_001"),
-    }
-
+    # Default Colors (Dracula Theme)
     COLORS = {
         'bg': '#282a36',           # Background
         'fg': '#f8f8f2',           # Foreground
@@ -26,47 +21,86 @@ class Config:
         'yellow': '#f1fa8c'
     }
 
+    _settings = {}
+    _loaded = False
+
     @staticmethod
     def get_config_path():
         return os.path.expanduser("~/.fangkan_helper_config.json")
 
-    @staticmethod
-    def load_user_settings():
-        path = Config.get_config_path()
+    @classmethod
+    def load_settings(cls):
+        path = cls.get_config_path()
         if os.path.exists(path):
             try:
                 with open(path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except:
-                pass
-        return {}
+                    cls._settings = json.load(f)
+            except Exception:
+                cls._settings = {}
+        else:
+            cls._settings = {}
+        cls._loaded = True
+        return cls._settings
 
-    @staticmethod
-    def save_user_settings(settings):
-        path = Config.get_config_path()
+    @classmethod
+    def save_settings(cls):
+        path = cls.get_config_path()
         try:
             with open(path, 'w', encoding='utf-8') as f:
-                json.dump(settings, f, ensure_ascii=False, indent=2)
-        except:
+                json.dump(cls._settings, f, ensure_ascii=False, indent=2)
+        except Exception:
             pass
 
-    @staticmethod
-    def get_fonts():
-        os_type = platform.system()
-        if os_type == 'Windows':
-            base_font = '微软雅黑'
-            mono_font = 'Consolas'
-        elif os_type == 'Darwin':
-            base_font = 'Helvetica'
-            mono_font = 'Menlo'
-        else:
-            base_font = 'Sans'
-            mono_font = 'Monospace'
+    @classmethod
+    def get(cls, key, default=None):
+        if not cls._loaded:
+            cls.load_settings()
+        return cls._settings.get(key, default)
 
-        return {
-            'body': (base_font, 11),
-            'button': (base_font, 11, 'bold'),
-            'header': (base_font, 20, 'bold'),
-            'subheader': (base_font, 12),
-            'code': (mono_font, 13),
-        }
+    @classmethod
+    def set(cls, key, value):
+        if not cls._loaded:
+            cls.load_settings()
+        cls._settings[key] = value
+        cls.save_settings()
+
+    @classmethod
+    def get_root_dir(cls):
+        """Get the root working directory."""
+        custom_root = cls.get("root_dir")
+        if custom_root and os.path.exists(custom_root):
+            return Path(custom_root)
+        
+        # Default defaults
+        if platform.system() == 'Windows':
+            default = Path(os.path.expanduser("~/Pictures/Work"))
+        else:
+            default = Path(os.path.expanduser("~/Pictures/工作"))
+            
+        # If default doesn't exist, maybe just ~/Pictures
+        if not default.exists():
+            # We don't create it here, just return it. The app might create it.
+            pass
+            
+        return default
+
+    @classmethod
+    def get_photo_src(cls):
+        """Get source directory for photos (SD Card)."""
+        custom = cls.get("photo_src")
+        if custom and os.path.exists(custom):
+            return Path(custom)
+        # Default fallbacks could be added here if needed
+        return Path("/Volumes/Untitled/DCIM/100SIGMA") if platform.system() == 'Darwin' else Path("D:/DCIM/100SIGMA")
+
+    @classmethod
+    def get_vr_src(cls):
+        """Get source directory for VR (SD Card)."""
+        custom = cls.get("vr_src")
+        if custom and os.path.exists(custom):
+            return Path(custom)
+        return Path("/Volumes/Osmo360/DCIM/CAM_001") if platform.system() == 'Darwin' else Path("E:/DCIM/CAM_001")
+
+    @classmethod
+    def get_photographer_name(cls):
+        return cls.get("photographer_name", "")

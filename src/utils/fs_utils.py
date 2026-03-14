@@ -1,7 +1,18 @@
 import os
+import sys
 import shutil
 from datetime import datetime, timedelta
-from .config import Config
+from src.utils.config import Config
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 def resolve_conflict(dst_dir, filename):
     dst_file = os.path.join(dst_dir, filename)
@@ -23,7 +34,7 @@ def get_date_based_dirs(base_root=None, mode='create', photographer_name="贺志
           'import' -> for importing files (原片)
     """
     if base_root is None:
-        base_root = Config.PATHS['root']
+        base_root = Config.get_root_dir()
     
     today = datetime.now()
     year_str = today.strftime("%Y")
@@ -47,7 +58,7 @@ def get_date_based_dirs(base_root=None, mode='create', photographer_name="贺志
 
 def copy_yesterday_excel_to_today(base_root=None, photographer_name="贺志"):
     if base_root is None:
-        base_root = Config.PATHS['root']
+        base_root = Config.get_root_dir()
     try:
         today = datetime.now()
         today_dirs = get_date_based_dirs(base_root=base_root, mode='create', photographer_name=photographer_name)
@@ -250,7 +261,7 @@ def _find_hs_column(ws, header_row, header_map):
 
 def update_today_excel_from_folder_names(folder_names, base_root=None, max_backtrack_days=365, photographer_name="贺志"):
     if base_root is None:
-        base_root = Config.PATHS["root"]
+        base_root = Config.get_root_dir()
 
     try:
         from openpyxl import load_workbook

@@ -2,7 +2,7 @@ import os
 import shutil
 import time
 import errno
-from ..utils.fs_utils import resolve_conflict
+from src.utils.fs_utils import resolve_conflict
 
 class ImportTask:
     def __init__(self, callbacks=None):

@@ -39,7 +39,7 @@
 ## 📸 界面预览 / Interface Preview
 
 <div align="center">
-    <img src="重构版界面.png" alt="重构版界面" width="100%" style="border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+    <img src="重构版界面1.png" alt="重构版界面" width="100%" style="border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
     <p><em>Electron 版本：3D 粒子背景与全息 HUD 界面</em></p>
 </div>
 

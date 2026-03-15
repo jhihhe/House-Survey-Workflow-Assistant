@@ -22,7 +22,7 @@ class FolderHighlighter(QSyntaxHighlighter):
         fmt_cn = QTextCharFormat()
         fmt_cn.setForeground(QColor(t.PINK))
         fmt_cn.setFontWeight(QFont.Weight.Medium)
-        self.rules.append((QRegularExpression(r'[\u4e00-\u9fa5]+'), fmt_cn))
+        self.rules.append((QRegularExpression(r'[一-龥]+'), fmt_cn))
 
         # 1. Index (e.g., "1.", "2、") -> Orange
         fmt_index = QTextCharFormat()

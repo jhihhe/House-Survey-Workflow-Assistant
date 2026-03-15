@@ -210,9 +210,18 @@ const CyberCard = ({ children, className, delay = 0, glowColor = "rgba(255,255,2
 // 3. Neon Action Button
 const NeonButton = ({ onClick, label, subLabel, icon: Icon, color = "indigo", disabled }: any) => {
   const styles = {
-    indigo: "from-indigo-600 to-violet-600 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)]",
-    cyan: "from-cyan-600 to-blue-600 shadow-[0_0_20px_rgba(8,145,178,0.3)] hover:shadow-[0_0_30px_rgba(8,145,178,0.5)]",
+    indigo: {
+      orbit: "orbit-indigo",
+      icon: "from-indigo-600 to-violet-600 shadow-[0_0_24px_rgba(99,102,241,0.38)]",
+      sheen: "from-indigo-500/0 via-indigo-300/40 to-violet-500/0",
+    },
+    cyan: {
+      orbit: "orbit-cyan",
+      icon: "from-cyan-600 to-blue-600 shadow-[0_0_24px_rgba(6,182,212,0.38)]",
+      sheen: "from-cyan-500/0 via-cyan-200/35 to-blue-500/0",
+    },
   };
+  const palette = styles[color as keyof typeof styles];
 
   return (
     <motion.button
@@ -221,18 +230,23 @@ const NeonButton = ({ onClick, label, subLabel, icon: Icon, color = "indigo", di
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "group relative w-full rounded-2xl p-[1px] overflow-hidden transition-all duration-300",
+        "group relative w-full rounded-2xl p-[1px] overflow-hidden transition-all duration-300 [transform-style:preserve-3d]",
         disabled && "opacity-50 grayscale cursor-not-allowed"
       )}
     >
-      {/* Animated gradient border */}
-      <div className={cn("absolute inset-0 bg-gradient-to-r animate-[spin_3s_linear_infinite] opacity-70 group-hover:opacity-100 blur-[2px]", styles[color as keyof typeof styles])} />
-      
-      {/* Button Content */}
+      <div className={cn("absolute inset-0 pointer-events-none", palette.orbit)}>
+        <div className="absolute inset-[-42%] orbit-core" />
+      </div>
+
+      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+        <div className={cn("absolute inset-y-0 -left-1/3 w-1/2 bg-gradient-to-r blur-md opacity-70 group-hover:opacity-100 transition-opacity duration-500 orbit-sheen", palette.sheen)} />
+      </div>
+
       <div className="relative h-full bg-[#080808] backdrop-blur-xl rounded-[15px] p-4 flex items-center justify-between z-10 group-hover:bg-[#0a0a0a] transition-colors border border-white/5 shadow-inner [transform-style:preserve-3d]">
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_45%)]" />
+        <div className="absolute inset-0 opacity-40 pointer-events-none bg-[radial-gradient(140%_90%_at_50%_-30%,rgba(255,255,255,0.22),transparent_52%)]" />
         <div className="flex items-center gap-4">
-          <div className={cn("p-3 rounded-xl bg-gradient-to-br text-white shadow-lg border border-white/10 relative overflow-hidden", styles[color as keyof typeof styles])}>
+          <div className={cn("p-3 rounded-xl bg-gradient-to-br text-white shadow-lg border border-white/10 relative overflow-hidden", palette.icon)}>
             <div className="absolute inset-0 bg-white/20 animate-pulse" />
             <Icon size={20} className="drop-shadow-md relative z-10" />
           </div>
@@ -343,6 +357,12 @@ function App() {
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState({ photo: { val: 0, speed: '' }, vr: { val: 0, speed: '' } });
   const [rootPath, setRootPath] = useState("~/Pictures");
+  const [sceneEnabled, setSceneEnabled] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSceneEnabled(true), 180);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const lines = inputText.split('\n').filter(l => l.trim().length > 0);
@@ -473,7 +493,7 @@ function App() {
     <div className="h-screen bg-black text-white font-sans selection:bg-indigo-500/30 overflow-hidden relative flex flex-col">
       
       {/* 3D Background Scene */}
-      <Scene />
+      {sceneEnabled ? <Scene /> : null}
       <div className="absolute inset-0 z-[1] pointer-events-none aurora-drift" />
       <div className="absolute inset-0 z-[2] pointer-events-none star-streaks" />
       <div className="absolute inset-0 z-[3] pointer-events-none volumetric-rays" />

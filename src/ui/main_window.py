@@ -2,16 +2,18 @@ import sys
 import os
 import shutil
 import platform
+import math
+import random
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, 
     QLabel, QLineEdit, QPushButton, QProgressBar, QFileDialog, 
-    QMessageBox, QGroupBox, QFrame, QApplication, QComboBox
+    QMessageBox, QGroupBox, QFrame, QApplication, QComboBox, QGraphicsDropShadowEffect
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize, QTimer
-from PyQt6.QtGui import QFont, QIcon, QColor, QPalette, QAction
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize, QTimer, QRectF
+from PyQt6.QtGui import QFont, QIcon, QColor, QPalette, QAction, QPainter, QPen, QLinearGradient, QBrush, QRadialGradient
 
 from src.utils.config import Config
 from src.utils.fs_utils import get_date_based_dirs, resource_path
@@ -19,6 +21,200 @@ from src.services.folder_service import FolderService
 from src.services.import_service import ImportTask
 from src.ui.styles import get_stylesheet, THEMES
 from src.ui.highlighter import FolderHighlighter
+
+
+class StarWarsDisplayTextEdit(QTextEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._accent = QColor("#8be9fd")
+        self._phase = 0
+        self.setViewportMargins(12, 14, 12, 14)
+        self.document().setDocumentMargin(24)
+        self.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
+        self._timer = QTimer(self)
+        self._timer.timeout.connect(self._tick)
+        self._timer.start(36)
+
+    def _tick(self):
+        self._phase = (self._phase + 4) % 1000
+        self.viewport().update()
+
+    def set_hud_palette(self, accent: QColor):
+        self._accent = QColor(accent)
+        self.viewport().update()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        painter = QPainter(self.viewport())
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        w = self.viewport().width()
+        h = self.viewport().height()
+        top_h = 24
+        bottom_h = 30
+        margin = 12  # Use a fixed symmetric margin for both top and bottom corners
+        bottom_base = h - margin  # The Y coordinate of the bottom corner line
+        bottom_band_top = bottom_base - bottom_h + 6
+
+        top_band = QColor(6, 20, 36, 160)
+        bottom_band = QColor(6, 20, 36, 160)
+        painter.fillRect(QRectF(0, 0, w, top_h), top_band)
+        painter.fillRect(QRectF(0, bottom_band_top, w, bottom_h), bottom_band)
+
+        scan = QColor(self._accent)
+        scan.setAlpha(13)
+        painter.setPen(scan)
+        for y in range(0, h, 3):
+            painter.drawLine(0, y, w, y)
+
+        grid = QColor(self._accent)
+        grid.setAlpha(9)
+        painter.setPen(grid)
+        for x in range(0, w, 22):
+            painter.drawLine(x, 0, x, h)
+
+        warp = QColor(self._accent)
+        warp.setAlpha(14)
+        painter.setPen(warp)
+        for y in range(0, h, 9):
+            offset = math.sin((y * 0.06) + (self._phase * 0.035)) * 7.5
+            painter.drawLine(int(offset), y, int(w + offset), y)
+
+        sweep_x = (self._phase / 1000.0) * (w + 260) - 130
+        sweep = QLinearGradient(sweep_x - 120, 0, sweep_x + 120, 0)
+        c0 = QColor(self._accent)
+        c0.setAlpha(0)
+        c1 = QColor(self._accent)
+        c1.setAlpha(58)
+        sweep.setColorAt(0.0, c0)
+        sweep.setColorAt(0.5, c1)
+        sweep.setColorAt(1.0, c0)
+        painter.fillRect(QRectF(sweep_x - 120, 0, 240, h), QBrush(sweep))
+
+        halo = QRadialGradient(w * 0.52, h * 0.25, h * 0.7)
+        h0 = QColor(self._accent)
+        h0.setAlpha(22)
+        h1 = QColor(self._accent)
+        h1.setAlpha(0)
+        halo.setColorAt(0, h0)
+        halo.setColorAt(1, h1)
+        painter.fillRect(QRectF(0, 0, w, h), QBrush(halo))
+
+        noise = QColor(self._accent)
+        noise.setAlpha(18)
+        painter.setPen(noise)
+        for i in range(140):
+            x = (i * 73 + self._phase * 3) % max(1, w)
+            y = (i * 47 + self._phase * 5) % max(1, h)
+            painter.drawPoint(int(x), int(y))
+
+        glitch = QColor(self._accent)
+        glitch.setAlpha(22)
+        painter.setPen(glitch)
+        for i in range(6):
+            gy = int(((self._phase * (i + 3)) % max(10, h - 10)))
+            gw = int(w * (0.18 + (i * 0.1)))
+            gx = int((self._phase * (i + 5) * 1.7) % max(1, w - gw))
+            painter.fillRect(QRectF(gx, gy, gw, 1), glitch)
+
+        corner = QPen(QColor(self._accent))
+        corner.setWidth(2)
+        painter.setPen(corner)
+        size = 16
+        # Draw corners symmetrically using `margin` and `bottom_base`
+        painter.drawLine(margin, margin, margin + size, margin)
+        painter.drawLine(margin, margin, margin, margin + size)
+        painter.drawLine(w - margin - size, margin, w - margin, margin)
+        painter.drawLine(w - margin, margin, w - margin, margin + size)
+        painter.drawLine(margin, bottom_base, margin + size, bottom_base)
+        painter.drawLine(margin, bottom_base - size, margin, bottom_base)
+        painter.drawLine(w - margin - size, bottom_base, w - margin, bottom_base)
+        painter.drawLine(w - margin, bottom_base - size, w - margin, bottom_base)
+
+        text_color = QColor(self._accent)
+        text_color.setAlpha(205)
+        painter.setPen(text_color)
+        f = QFont("Menlo")
+        f.setPointSize(8)
+        f.setBold(True)
+        painter.setFont(f)
+        
+        fm = painter.fontMetrics()
+        auth_text = "AUTH: PHOTOGRAPHER"
+        link_text = "LINK_STABLE"
+        
+        # Top text: y=margin + 12 (to sit nicely inside the top bracket)
+        top_y = margin + 12
+        painter.drawText(margin + 6, top_y, "NAVI-COMM // INPUT_CHANNEL")
+        painter.drawText(w - margin - 6 - fm.horizontalAdvance(auth_text), top_y, auth_text)
+        
+        # Bottom text: y=bottom_base - 4 (to sit nicely above the bottom bracket)
+        bottom_y = bottom_base - 4
+        painter.drawText(margin + 6, bottom_y, "SECTOR: CN-CHANGSHA")
+        painter.drawText(w - margin - 6 - fm.horizontalAdvance(link_text), bottom_y, link_text)
+        
+        painter.end()
+
+class CRTEffectOverlay(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self._phase = 0
+        self._color = QColor("#8be9fd")
+        self._timer = QTimer(self)
+        self._timer.timeout.connect(self._tick)
+        self._timer.start(45)
+
+    def set_color(self, color: QColor):
+        self._color = color
+        self.update()
+
+    def _tick(self):
+        self._phase = (self._phase + 1) % 100
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+        w = self.width()
+        h = self.height()
+
+        # 1. Vignette (CRT Corners / 暗角)
+        gradient = QRadialGradient(w/2, h/2, math.hypot(w/2, h/2))
+        gradient.setColorAt(0.0, QColor(0, 0, 0, 0))
+        gradient.setColorAt(0.65, QColor(0, 0, 0, 30))
+        gradient.setColorAt(1.0, QColor(0, 0, 0, 190))
+        painter.fillRect(0, 0, w, h, QBrush(gradient))
+
+        # 2. Global subtle scanlines (全局扫描线)
+        scan_color = QColor(0, 0, 0, 20)
+        painter.setPen(scan_color)
+        for y in range(0, h, 3):
+            painter.drawLine(0, y, w, y)
+
+        # 3. Slow interference refresh bar (屏幕刷新干扰纹)
+        bar_y = (self._phase / 100.0) * h * 1.5 - (h * 0.25)
+        bar_grad = QLinearGradient(0, bar_y - 40, 0, bar_y + 40)
+        c = QColor(self._color)
+        c.setAlpha(0)
+        c_mid = QColor(self._color)
+        c_mid.setAlpha(8)
+        bar_grad.setColorAt(0.0, c)
+        bar_grad.setColorAt(0.5, c_mid)
+        bar_grad.setColorAt(1.0, c)
+        painter.fillRect(QRectF(0, bar_y - 40, w, 80), QBrush(bar_grad))
+        
+        # 4. Sparse screen noise (做旧噪点)
+        noise_color = QColor(self._color)
+        noise_color.setAlpha(12)
+        painter.setPen(noise_color)
+        for _ in range(300):
+            nx = random.randint(0, w)
+            ny = random.randint(0, h)
+            painter.drawPoint(nx, ny)
+
+        painter.end()
+
 
 class ImportWorker(QThread):
     progress_photo = pyqtSignal(int, int, str)
@@ -86,23 +282,34 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("房堪工作流助手")
         self.setWindowIcon(QIcon(resource_path("assets/icons/final_icon.png")))
-        self.resize(960, 800)
-        self.setMinimumSize(850, 650)
+        self.resize(1280, 1100)
+        self.setMinimumSize(1200, 1000)
         
         # Device Monitor Timer
         self.device_timer = QTimer(self)
         self.device_timer.timeout.connect(self.check_devices)
         self.device_timer.start(2000) # Check every 2 seconds
+        self._hud_phase = 0
+        self._device_state_text = "SCANNING DEVICES"
+        self.hud_timer = QTimer(self)
+        self.hud_timer.timeout.connect(self.tick_hud)
+        self.hud_timer.start(140)
         
         # Load theme preference or default
         self.current_theme = Config.get("theme", "Dracula (Official) - 德古拉(官方)")
         
         self.init_ui()
+        
+        # Initialize Global CRT Overlay
+        self.crt_overlay = CRTEffectOverlay(self)
+        self.crt_overlay.raise_()
+        
         self.apply_theme(self.current_theme)
         self.load_settings()
         
         # Initial check
         self.check_devices()
+        QTimer.singleShot(0, self.ensure_default_geometry)
 
     def init_ui(self):
         central_widget = QWidget()
@@ -118,9 +325,9 @@ class MainWindow(QMainWindow):
         
         title_box = QVBoxLayout()
         title_box.setSpacing(4)
-        title_label = QLabel("房堪工作流助手")
-        title_label.setObjectName("header_title")
-        title_box.addWidget(title_label)
+        self.title_label = QLabel("房堪工作流助手")
+        self.title_label.setObjectName("header_title")
+        title_box.addWidget(self.title_label)
         
         header_layout.addLayout(title_box)
         header_layout.addStretch()
@@ -145,8 +352,11 @@ class MainWindow(QMainWindow):
         input_group = QGroupBox(" 房源信息录入")
         input_layout = QVBoxLayout(input_group)
         input_layout.setContentsMargins(16, 24, 16, 16)
+        input_layout.setSpacing(12)
         
-        self.input_text = QTextEdit()
+        self.input_text = StarWarsDisplayTextEdit()
+        self.input_text.setObjectName("starwars_console")
+        self.input_text.setMinimumHeight(250)
         self.input_text.setPlaceholderText("在此粘贴房源信息...\n例如：\n1.郭艳 HS251217836041 湘雅附一店 天健壹平方英里 A-2311 北")
         self.input_text.textChanged.connect(self.update_stats)
         
@@ -175,7 +385,7 @@ class MainWindow(QMainWindow):
         tools_layout.addWidget(btn_clear)
         
         input_layout.addLayout(tools_layout)
-        main_layout.addWidget(input_group, stretch=1)
+        main_layout.addWidget(input_group, stretch=3)
 
         # 3. Settings Section
         settings_group = QGroupBox(" 工作参数配置")
@@ -306,10 +516,24 @@ class MainWindow(QMainWindow):
         
         self.device_status_label = QLabel("检测设备中...")
         self.device_status_label.setContentsMargins(10, 0, 0, 0)
+        self.device_status_label.setObjectName("status_hud_scan")
         self.status_bar.addWidget(self.device_status_label)
         
         # self.status_bar.showMessage("就绪") # Remove this as requested
         
+        self.apply_cinematic_effects()
+        self.sync_console_palette()
+
+    def ensure_default_geometry(self):
+        target_w, target_h = 1280, 1100
+        self.resize(target_w, target_h)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'crt_overlay'):
+            self.crt_overlay.resize(self.size())
+            self.crt_overlay.raise_()
+
     def change_theme(self, theme_name):
         self.current_theme = theme_name
         self.apply_theme(theme_name)
@@ -320,30 +544,155 @@ class MainWindow(QMainWindow):
 
     def apply_theme(self, theme_name):
         self.setStyleSheet(get_stylesheet(theme_name))
+        self.apply_cinematic_effects()
+        self.sync_console_palette()
+
+    def sync_console_palette(self):
+        t = THEMES.get(self.current_theme, THEMES["Dracula (Official) - 德古拉(官方)"])
+        self.input_text.set_hud_palette(QColor(t.CYAN))
+        if hasattr(self, 'crt_overlay'):
+            self.crt_overlay.set_color(QColor(t.CYAN))
+
+    def apply_cinematic_effects(self):
+        t = THEMES.get(self.current_theme, THEMES["Dracula (Official) - 德古拉(官方)"])
+        pairs = [
+            (self.btn_import, QColor(t.PINK), 42),
+            (self.btn_create, QColor(t.PURPLE), 42),
+            (self.input_text, QColor(t.CYAN), 28),
+            (self.title_label, QColor(t.CYAN), 20),
+        ]
+        for widget, color, blur in pairs:
+            glow = QGraphicsDropShadowEffect(self)
+            color.setAlpha(145)
+            glow.setColor(color)
+            glow.setBlurRadius(blur)
+            glow.setOffset(0, 0)
+            widget.setGraphicsEffect(glow)
 
     def check_devices(self):
         p_src = Config.get_photo_src()
         v_src = Config.get_vr_src()
         
-        p_ok = os.path.exists(p_src)
-        v_ok = os.path.exists(v_src)
+        p_ok = os.path.exists(str(p_src))
+        v_ok = os.path.exists(str(v_src))
         
-        if p_ok and v_ok:
-            self.device_status_label.setText("🟢 已连接相机 & 全景设备")
-            self.device_status_label.setObjectName("status_ok")
-        elif p_ok:
-            self.device_status_label.setText("🟡 已连接相机 (未检测到 VR)")
-            self.device_status_label.setObjectName("status_warn")
-        elif v_ok:
-            self.device_status_label.setText("🟡 已连接 VR (未检测到 相机)")
-            self.device_status_label.setObjectName("status_warn")
-        else:
-            self.device_status_label.setText("🔴 未检测到设备")
-            self.device_status_label.setObjectName("status_err")
+        # 提取设备名称逻辑
+        def get_device_name(path_str):
+            if not path_str or not os.path.exists(path_str):
+                return ""
             
-        # Refresh style for the label to pick up new object name
+            drive_name = ""
+            
+            # 1. 尝试获取卷标
+            if platform.system() == 'Windows':
+                drive = os.path.splitdrive(path_str)[0]
+                if drive:
+                    try:
+                        import win32api
+                        vol_info = win32api.GetVolumeInformation(drive + "\\")
+                        if vol_info[0]:
+                            drive_name = vol_info[0]
+                    except:
+                        pass
+                    if not drive_name:
+                        drive_name = drive
+            elif platform.system() == 'Darwin':
+                if path_str.startswith('/Volumes/'):
+                    parts = Path(path_str).parts
+                    if len(parts) >= 3:
+                        drive_name = parts[2]
+            
+            # 2. 如果卷标是 Untitled 或为空，尝试读取 EXIF
+            is_generic = not drive_name or drive_name.lower() in ['untitled', 'no name', 'disk']
+            
+            if is_generic:
+                try:
+                    from PIL import Image
+                    from PIL.ExifTags import TAGS
+                    
+                    # 扫描目录下前3个文件寻找图片
+                    for root, dirs, files in os.walk(path_str):
+                        for f in files:
+                            if f.lower().endswith(('.jpg', '.jpeg', '.arw', '.dng')):
+                                full_path = os.path.join(root, f)
+                                try:
+                                    img = Image.open(full_path)
+                                    exif = img.getexif()
+                                    if exif:
+                                        for tag_id, value in exif.items():
+                                            tag = TAGS.get(tag_id, tag_id)
+                                            if tag == 'Model':
+                                                # Clean up model string (remove null bytes, non-printable chars)
+                                                raw_model = str(value).strip()
+                                                clean_model = "".join(c for c in raw_model if c.isprintable())
+                                                return f"[{clean_model}]"
+                                except:
+                                    continue
+                        # 只扫描顶层或一层子目录，避免太慢
+                        break
+                except ImportError:
+                    pass
+            
+            return f"[{drive_name}]" if drive_name else ""
+
+        p_name = get_device_name(str(p_src))
+        v_name = get_device_name(str(v_src))
+        
+        # Dual-line status format
+        line1 = ""
+        line2 = ""
+        
+        if p_ok:
+            line1 = f"PHOTO {p_name} : ONLINE"
+        else:
+            line1 = "PHOTO : OFFLINE"
+            
+        if v_ok:
+            line2 = f"VR {v_name} : ONLINE"
+        else:
+            line2 = "VR : OFFLINE"
+            
+        # If both are missing
+        if not p_ok and not v_ok:
+             self._device_state_text = "SYS-LINK NO DEVICE LINK"
+             self.device_status_label.setObjectName("status_hud_err")
+        else:
+            self._device_state_text = f"SYS-LINK {line1}\nSYS-LINK {line2}"
+            if p_ok and v_ok:
+                self.device_status_label.setObjectName("status_hud_ok")
+            else:
+                self.device_status_label.setObjectName("status_hud_warn")
+            
+        self.render_device_status()
         self.device_status_label.style().unpolish(self.device_status_label)
         self.device_status_label.style().polish(self.device_status_label)
+
+    def tick_hud(self):
+        # Update less frequently or just for redundancy
+        self.render_device_status()
+
+    def render_device_status(self):
+        # Format the text with color highlights
+        text = self._device_state_text
+        t = THEMES.get(self.current_theme, THEMES["Dracula (Official) - 德古拉(官方)"])
+        
+        # Replace status keywords with colored spans
+        # ONLINE -> Green, OFFLINE -> Red, NO DEVICE -> Red
+        
+        # We need to split lines if it contains a newline
+        lines = text.split('\n')
+        formatted_lines = []
+        
+        for line in lines:
+            line_html = line \
+                .replace("ONLINE", f"<span style='color:{t.GREEN}; font-weight:bold'>ONLINE</span>") \
+                .replace("OFFLINE", f"<span style='color:{t.RED}; font-weight:bold'>OFFLINE</span>") \
+                .replace("NO DEVICE LINK", f"<span style='color:{t.RED}; font-weight:bold'>NO DEVICE LINK</span>") \
+                .replace("SYS-LINK", f"<span style='color:{t.ORANGE}'>SYS-LINK</span>")
+            formatted_lines.append(line_html)
+            
+        final_html = "<br>".join(formatted_lines)
+        self.device_status_label.setText(final_html)
 
     def update_progress_style(self, bar, value, total):
         # Dynamic color change based on progress

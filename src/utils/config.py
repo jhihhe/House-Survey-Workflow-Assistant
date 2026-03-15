@@ -85,12 +85,81 @@ class Config:
         return default
 
     @classmethod
+    def _scan_for_folder(cls, candidates, volume_filter=None):
+        """
+        Scan mounted volumes for specific folder structures.
+        volume_filter: optional function(volume_name) -> bool to pre-filter volumes
+        """
+        system = platform.system()
+        found_path = None
+        
+        if system == 'Darwin':
+            volumes_dir = "/Volumes"
+            if not os.path.exists(volumes_dir):
+                return None
+            try:
+                # List all volumes
+                volumes = [os.path.join(volumes_dir, v) for v in os.listdir(volumes_dir) if not v.startswith('.')]
+                
+                # Sort volumes to ensure deterministic order (maybe prioritizing non-Macintosh HD?)
+                # Usually external drives are what we want. "Macintosh HD" usually shouldn't have DCIM at root level accessible easily?
+                # But we check specific paths.
+                
+                for vol in volumes:
+                    if volume_filter and not volume_filter(os.path.basename(vol)):
+                        continue
+                        
+                    for cand in candidates:
+                        target = os.path.join(vol, cand)
+                        if os.path.exists(target):
+                            return Path(target)
+            except Exception:
+                pass
+                
+        elif system == 'Windows':
+            import string
+            drives = []
+            try:
+                import win32api
+                drives = win32api.GetLogicalDriveStrings()
+                drives = drives.split('\000')[:-1]
+            except:
+                drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:")]
+            
+            for drive in drives:
+                # Drive is like "C:\"
+                if volume_filter:
+                    # Getting volume label on Windows is harder here without extra calls, ignore filter for now or implement if needed
+                    pass
+
+                for cand in candidates:
+                    target = os.path.join(drive, cand)
+                    if os.path.exists(target):
+                        return Path(target)
+                        
+        return None
+
+    @classmethod
     def get_photo_src(cls):
         """Get source directory for photos (SD Card)."""
         custom = cls.get("photo_src")
         if custom and os.path.exists(custom):
             return Path(custom)
-        # Default fallbacks could be added here if needed
+            
+        # Expanded candidates for professional cameras
+        candidates = [
+            "DCIM/100SIGMA", "DCIM/100CANON", "DCIM/100NIKON", "DCIM/100FUJI", 
+            "DCIM/100SONY", "DCIM/100OLYMP", "DCIM/100PANA", "DCIM/100LEICA",
+            "DCIM/101MSDCF", "DCIM/100MSDCF", "DCIM/Camera", 
+            "DCIM/100MEDIA", "DCIM/101MEDIA", # Ricoh / Others
+            "MP_ROOT/100ANV01" # Sony Video sometimes
+        ]
+        
+        # Try to find a volume that looks like a camera
+        detected = cls._scan_for_folder(candidates)
+        if detected:
+            return detected
+            
         return Path("/Volumes/Untitled/DCIM/100SIGMA") if platform.system() == 'Darwin' else Path("D:/DCIM/100SIGMA")
 
     @classmethod
@@ -99,6 +168,19 @@ class Config:
         custom = cls.get("vr_src")
         if custom and os.path.exists(custom):
             return Path(custom)
+            
+        # Expanded candidates for VR cameras (Insta360, DJI, GoPro Max, etc)
+        candidates = [
+            "DCIM/CAM_001", "DCIM/Camera01", "DCIM/Camera02", # Insta360
+            "DCIM/PANORAMA", "DCIM/100GOPRO", "DCIM/101GOPRO", # GoPro
+            "DCIM/100DJI", "DCIM/101DJI", "DCIM/DJI_001", # DJI
+            "DCIM/100MEDIA" # Sometimes shared, but if Photo didn't pick it up, maybe VR will?
+        ]
+        
+        detected = cls._scan_for_folder(candidates)
+        if detected:
+            return detected
+            
         return Path("/Volumes/Osmo360/DCIM/CAM_001") if platform.system() == 'Darwin' else Path("E:/DCIM/CAM_001")
 
     @classmethod

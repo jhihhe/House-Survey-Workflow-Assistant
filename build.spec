@@ -13,6 +13,15 @@ hidden_imports = tmp_hiddenimports
 # Add src.ui.styles explicitly just in case
 if 'src.ui.styles' not in hidden_imports:
     hidden_imports.append('src.ui.styles')
+    
+# Add PIL hidden imports
+hidden_imports.append('PIL')
+hidden_imports.append('PIL.ExifTags')
+
+# Conditional imports
+if sys.platform == 'win32':
+    hidden_imports.append('win32api')
+    hidden_imports.append('win32file')
 
 block_cipher = None
 
@@ -65,11 +74,18 @@ exe = EXE(
 )
 
 if sys.platform == 'darwin':
-    app = BUNDLE(
+    coll = COLLECT(
         exe,
         a.binaries,
         a.zipfiles,
         a.datas,
+        strip=False,
+        upx=True,
+        upx_exclude=[],
+        name='HouseSurveyAssistant',
+    )
+    app = BUNDLE(
+        coll,
         name='HouseSurveyAssistant.app',
         icon=icon_file,
         bundle_identifier='com.jhihhe.housesurvey',

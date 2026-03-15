@@ -200,6 +200,19 @@ body {
   100% { background-position: 60px 30px, 0 30px; }
 }
 
+@keyframes orbit-spin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.03); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes orbit-sheen {
+  0% { transform: translateX(-30%) skewX(-18deg); opacity: 0; }
+  20% { opacity: 0.8; }
+  60% { opacity: 0.45; }
+  100% { transform: translateX(260%) skewX(-18deg); opacity: 0; }
+}
+
 .aurora-drift {
   background:
     radial-gradient(42rem 26rem at 14% 18%, rgba(79, 70, 229, 0.14), transparent 62%),
@@ -262,4 +275,22 @@ body {
 
 .hud-bracket {
   box-shadow: 0 0 10px rgba(34, 211, 238, 0.25);
+}
+
+.orbit-indigo .orbit-core {
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, rgba(129, 140, 248, 0.08), rgba(129, 140, 248, 0.92), rgba(139, 92, 246, 0.95), rgba(56, 189, 248, 0.9), rgba(129, 140, 248, 0.08));
+  animation: orbit-spin 2.6s linear infinite;
+  filter: blur(12px) saturate(1.25);
+}
+
+.orbit-cyan .orbit-core {
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, rgba(34, 211, 238, 0.08), rgba(34, 211, 238, 0.92), rgba(59, 130, 246, 0.95), rgba(125, 211, 252, 0.85), rgba(34, 211, 238, 0.08));
+  animation: orbit-spin 2.6s linear infinite;
+  filter: blur(12px) saturate(1.25);
+}
+
+.orbit-sheen {
+  animation: orbit-sheen 2.8s ease-out infinite;
 }
